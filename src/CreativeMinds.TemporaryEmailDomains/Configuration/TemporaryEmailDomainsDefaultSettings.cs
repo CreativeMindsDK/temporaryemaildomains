@@ -4,9 +4,9 @@ using System.IO;
 namespace CreativeMinds.TemporaryEmailDomains.Configuration {
 
 	public class TemporaryEmailDomainsDefaultSettings : ITemporaryEmailDomainsSettings {
-		private String localPath = Path.Combine("app_data", "tempdomains.txt");
+		private String localPath = "app_data";
 
-		public String DownloadPath => "";
+		public String DownloadPath => "https://raw.githubusercontent.com/CreativeMindsDK/temporaryemaildomains/main/src/CreativeMinds.TemporaryEmailDomains/Assets/tempdomains.txt";
 		public String LocalStoragePath => this.localPath;
 	}
 }
