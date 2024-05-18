@@ -9,6 +9,8 @@ namespace CreativeMinds.TemporaryEmailDomains {
 		public static IServiceCollection AddDefaultTemporaryEmailDependencies(this IServiceCollection services) {
 			services.AddSingleton<ITemporaryEmailDomainService, TemporaryEmailDomainService>();
 
+			services.AddHttpClient();
+
 			services.AddTransient<ITemporaryEmailDomainsSettings, TemporaryEmailDomainsDefaultSettings>();
 
 			return services;
@@ -16,6 +18,8 @@ namespace CreativeMinds.TemporaryEmailDomains {
 
 		public static IServiceCollection AddTemporaryEmailDependencies(this IServiceCollection services, IConfiguration configuration) {
 			services.AddSingleton<ITemporaryEmailDomainService, TemporaryEmailDomainService>();
+
+			services.AddHttpClient();
 
 			services.Configure<TemporaryEmailDomainsSettingsReader>(configuration.GetSection("TemporaryEmailDomains"));
 			services.AddTransient<ITemporaryEmailDomainsSettings, TemporaryEmailDomainsSettingsBridge>();
