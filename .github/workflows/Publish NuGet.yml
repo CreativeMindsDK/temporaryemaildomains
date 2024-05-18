@@ -1,0 +1,60 @@
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ develop, release/* ]
+  pull_request:
+    branches: [ develop, release/* ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+
+    env:
+      BUILD_CONFIG: 'Release'
+      SOLUTION: 'src/CreativeMinds.TemporaryEmailDomains.sln'
+      PROJECT: 'src/CreativeMinds.TemporaryEmailDomains/CreativeMinds.TemporaryEmailDomains.csproj'
+      
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v1.0.5
+
+      - name: Restore dependencies
+        run: nuget restore $SOLUTION
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 8.x
+
+      - name: Set version
+        run: |
+         echo "Buid version is ${{github.run_number}}"
+         sed -i "s/\(<Version>\([0-9]\+\.\)\{2\}\)\([0-9]\+\)/\1${{github.run_number}}/" ${{env.PROJECT}}       
+
+      - name: Build
+        run: dotnet build $SOLUTION --configuration $BUILD_CONFIG --no-restore
+
+#      - name: Run tests
+#        run: dotnet test /p:Configuration=$BUILD_CONFIG --no-restore --no-build --verbosity normal
+
+      - name: Pack
+        working-directory: ./src/CreativeMinds.TemporaryEmailDomains
+        run: dotnet pack --configuration $BUILD_CONFIG
+
+      - name: Publish
+        working-directory: ./src/CreativeMinds.TemporaryEmailDomains
+        run: nuget push **\*.nupkg -Source 'https://nuget.pkg.github.com/CreativeMindsDK/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
