@@ -3,6 +3,14 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
 	  <Version>1.0.0</Version>
+	  <Authors>Steen F. Tøttrup</Authors>
+	  <Company>CreativeMinds ApS</Company>
+	  <Description>Library for identifying disposable and temporary e-mail domains</Description>
+	  <Copyright>Copyright 2024 (C) CreativeMinds ApS. All rights reserved.</Copyright>
+	  <PackageLicenseUrl>https://github.com/CreativeMindsDK/temporaryemaildomains/blob/master/LICENSE</PackageLicenseUrl>
+	  <PackageProjectUrl>https://github.com/CreativeMindsDK/temporaryemaildomains</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/CreativeMindsDK/temporaryemaildomains</RepositoryUrl>
+	  <RepositoryType>Git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
