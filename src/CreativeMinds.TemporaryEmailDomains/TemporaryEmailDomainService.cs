@@ -27,6 +27,7 @@ namespace CreativeMinds.TemporaryEmailDomains {
 
 		public async Task<Boolean> IsDomainDisposableOrTemporaryAsync(String domain, CancellationToken cancellationToken) {
 			if (domains == null) {
+				this.logger.LogDebug("Domains is null, let's fetch them");
 				await this.FetchData(cancellationToken);
 			}
 
@@ -40,10 +41,12 @@ namespace CreativeMinds.TemporaryEmailDomains {
 			if (String.IsNullOrWhiteSpace(this.settings.LocalStoragePath) == false) {
 				String fullPath = Path.Combine(this.hostEnvironment.ContentRootPath, this.settings.LocalStoragePath);
 				String pathToFile = Path.Combine(fullPath, "tempdomains.txt");
+				this.logger.LogDebug($"We have a local path, {fullPath}, let's see if the file is present");
 
 				try {
 					Directory.CreateDirectory(fullPath);
 					if (File.Exists(pathToFile) == true) {
+						this.logger.LogDebug("A local file with temp domains found, let's read it!");
 						String[] data = File.ReadAllLines(pathToFile);
 						this.domains = data.ToFrozenSet<String>();
 						fetched = true;
@@ -55,12 +58,14 @@ namespace CreativeMinds.TemporaryEmailDomains {
 			}
 
 			if (fetched == false && String.IsNullOrWhiteSpace(this.settings.DownloadPath) == false) {
+				this.logger.LogDebug("We have a download path, and no local file!");
 				using var client = this.clientFactory.CreateClient();
 
 				using (HttpResponseMessage response = await client.GetAsync($"{this.settings.DownloadPath}")) {
 					response.EnsureSuccessStatusCode();
 					String data = await response.Content.ReadAsStringAsync();
 					if (String.IsNullOrWhiteSpace(data) == false) {
+						this.logger.LogDebug("We have the disposable/temporary email data, let's write store it in memory and try to save on disk");
 						this.domains = data.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).ToFrozenSet();
 
 						if (String.IsNullOrWhiteSpace(this.settings.LocalStoragePath) == false) {
@@ -74,6 +79,9 @@ namespace CreativeMinds.TemporaryEmailDomains {
 								this.logger.LogError(ex, $"Trying to write to the given path '{fullPath}' failed.");
 							}
 						}
+					}
+					else {
+						this.logger.LogWarning("No data found for disposable/temporary email domains");
 					}
 				}
 			}
