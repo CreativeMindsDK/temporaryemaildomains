@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
@@ -37,6 +38,9 @@ namespace CreativeMinds.TemporaryEmailDomains {
 		private async Task FetchData(CancellationToken cancellationToken) {
 			cancellationToken.ThrowIfCancellationRequested();
 
+			Activity? activity = Activity.Current;
+			activity?.AddEvent(new ActivityEvent("Fetching disposable/temporary e-mail domain data"));
+
 			Boolean fetched = false;
 			if (String.IsNullOrWhiteSpace(this.settings.LocalStoragePath) == false) {
 				String fullPath = Path.Combine(this.hostEnvironment.ContentRootPath, this.settings.LocalStoragePath);
@@ -50,6 +54,7 @@ namespace CreativeMinds.TemporaryEmailDomains {
 						String[] data = File.ReadAllLines(pathToFile);
 						this.domains = data.ToFrozenSet<String>();
 						fetched = true;
+						activity?.AddEvent(new ActivityEvent("Read local disposable/temporary e-mail domain data"));
 					}
 				}
 				catch (Exception ex) {
@@ -65,6 +70,7 @@ namespace CreativeMinds.TemporaryEmailDomains {
 					response.EnsureSuccessStatusCode();
 					String data = await response.Content.ReadAsStringAsync();
 					if (String.IsNullOrWhiteSpace(data) == false) {
+						activity?.AddEvent(new ActivityEvent("Download disposable/temporary e-mail domain data"));
 						this.logger.LogDebug("Disposable/Temporary email domains, we have email domain data, let's store it in memory and try to save on disk");
 						this.domains = data.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).ToFrozenSet();
 
@@ -74,6 +80,7 @@ namespace CreativeMinds.TemporaryEmailDomains {
 
 							try {
 								File.WriteAllText(pathToFile, data);
+								activity?.AddEvent(new ActivityEvent("Saved disposable/temporary e-mail domain data locally"));
 							}
 							catch (Exception ex) {
 								this.logger.LogError(ex, $"Trying to write to the given path '{fullPath}' failed.");
