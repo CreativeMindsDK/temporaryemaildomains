@@ -26,19 +26,19 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+        # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v1.0.5
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.x
+
+      - name: Add nuget source
+        run: dotnet nuget add source 'https://nuget.pkg.github.com/CreativeMindsDK/index.json' --name github --username steentottrup --password ${{secrets.NUGET_API_KEY}} --store-password-in-clear-text
 
       - name: Restore dependencies
-        run: nuget restore $SOLUTION
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 8.x
+        run: dotnet restore $SOLUTION
 
       - name: Set version
         run: |
@@ -52,9 +52,9 @@ jobs:
 #        run: dotnet test /p:Configuration=$BUILD_CONFIG --no-restore --no-build --verbosity normal
 
       - name: Pack
-        working-directory: ./src/CreativeMinds.TemporaryEmailDomains
+        working-directory: ./src
         run: dotnet pack --configuration $BUILD_CONFIG
 
       - name: Publish
-        working-directory: ./src/CreativeMinds.TemporaryEmailDomains
-        run: nuget push **\*.nupkg -Source 'https://nuget.pkg.github.com/CreativeMindsDK/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
+        working-directory: ./src
+        run: dotnet nuget push **\*.nupkg --source 'https://nuget.pkg.github.com/CreativeMindsDK/index.json' --api-key ${{secrets.NUGET_API_KEY}}
